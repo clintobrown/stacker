@@ -7,14 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #050a0e;
-  --cyan: #00f5ff;
+  --bg: #050805;
+  --cyan: #00cc44;
   --magenta: #ff006e;
-  --white: #e8f4f8;
-  --dim: #00aaff;
-  --panel-bg: rgba(0,245,255,0.04);
-  --panel-border: rgba(0,245,255,0.18);
-  --panel-glow: rgba(0,245,255,0.08);
+  --white: #f0f0f0;
+  --dim: #00aa33;
+  --panel-bg: rgba(0,180,60,0.04);
+  --panel-border: rgba(0,180,60,0.2);
+  --panel-glow: rgba(0,180,60,0.07);
   --text-mono: 'Share Tech Mono', monospace;
   --text-head: 'Orbitron', sans-serif;
 }
@@ -38,9 +38,9 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 50%, rgba(0,245,255,0.03) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255,0,110,0.03) 0%, transparent 40%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 2 L58 17 L58 35 L30 50 L2 35 L2 17 Z' fill='none' stroke='rgba(0,245,255,0.04)' stroke-width='0.5'/%3E%3C/svg%3E");
+    radial-gradient(circle at 20% 50%, rgba(0,180,60,0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(0,100,30,0.03) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 2 L58 17 L58 35 L30 50 L2 35 L2 17 Z' fill='none' stroke='rgba(0,180,60,0.05)' stroke-width='0.5'/%3E%3C/svg%3E");
   background-size: auto, auto, 60px 52px;
   pointer-events: none;
   z-index: 0;
@@ -82,7 +82,7 @@ body::after {
   display: block;
   width: 100%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+  background: linear-gradient(90deg, transparent, var(--cyan), #ffffff, transparent);
   margin-top: 28px;
   opacity: 0.6;
 }
@@ -91,7 +91,7 @@ body::after {
   font-family: var(--text-mono);
   font-size: 0.62rem;
   letter-spacing: 0.35em;
-  color: #aaff00;
+  color: #00cc44;
   text-transform: uppercase;
   margin-bottom: 10px;
   opacity: 0.85;
@@ -103,7 +103,7 @@ body::after {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  background: linear-gradient(135deg, var(--cyan) 0%, #fff 50%, var(--magenta) 100%);
+  background: linear-gradient(135deg, var(--cyan) 0%, #ffffff 60%, #00ff55 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -139,7 +139,7 @@ body::after {
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  background: linear-gradient(90deg, transparent, #00cc44, transparent);
   opacity: 0.5;
 }
 
@@ -158,8 +158,8 @@ body::after {
 
 .panel-label::before {
   content: '//';
-  color: #aaff00;
-  opacity: 0.8;
+  color: #00cc44;
+  opacity: 0.9;
 }
 
 /* ─── CATEGORY BADGE ─── */
@@ -178,16 +178,16 @@ body::after {
 }
 
 .cat-badge.gh { border-color: #00f5ff; color: #00f5ff; background: rgba(0,245,255,0.08); box-shadow: 0 0 12px rgba(0,245,255,0.25); }
-.cat-badge.mito { border-color: #ffe600; color: #ffe600; background: rgba(255,230,0,0.08); box-shadow: 0 0 12px rgba(255,230,0,0.25); }
-.cat-badge.repair { border-color: #00ff88; color: #00ff88; background: rgba(0,255,136,0.08); box-shadow: 0 0 12px rgba(0,255,136,0.25); }
-.cat-badge.senolytic { border-color: #ff6b35; color: #ff6b35; background: rgba(255,107,53,0.08); box-shadow: 0 0 12px rgba(255,107,53,0.25); }
-.cat-badge.epitalon { border-color: #c77dff; color: #c77dff; background: rgba(199,125,255,0.08); box-shadow: 0 0 12px rgba(199,125,255,0.25); }
-.cat-badge.cog { border-color: #74b9ff; color: #74b9ff; background: rgba(116,185,255,0.08); box-shadow: 0 0 12px rgba(116,185,255,0.25); }
-.cat-badge.immune { border-color: #fd79a8; color: #fd79a8; background: rgba(253,121,168,0.08); box-shadow: 0 0 12px rgba(253,121,168,0.25); }
-.cat-badge.organ { border-color: #e17055; color: #e17055; background: rgba(225,112,85,0.08); box-shadow: 0 0 12px rgba(225,112,85,0.25); }
-.cat-badge.metabolic { border-color: #ff006e; color: #ff006e; background: rgba(255,0,110,0.08); box-shadow: 0 0 12px rgba(255,0,110,0.25); }
-.cat-badge.sexual { border-color: #ff7675; color: #ff7675; background: rgba(255,118,117,0.08); box-shadow: 0 0 12px rgba(255,118,117,0.25); }
-.cat-badge.tanning { border-color: #fdcb6e; color: #fdcb6e; background: rgba(253,203,110,0.08); box-shadow: 0 0 12px rgba(253,203,110,0.25); }
+.cat-badge.mito { border-color: #00cc44; color: #00cc44; background: rgba(0,204,68,0.08); box-shadow: 0 0 12px rgba(0,204,68,0.25); }
+.cat-badge.repair { border-color: #00ee55; color: #00ee55; background: rgba(0,238,85,0.08); box-shadow: 0 0 12px rgba(0,238,85,0.25); }
+.cat-badge.senolytic { border-color: #ff2200; color: #ff2200; background: rgba(255,34,0,0.08); box-shadow: 0 0 12px rgba(255,34,0,0.25); }
+.cat-badge.epitalon { border-color: #aaffaa; color: #aaffaa; background: rgba(170,255,170,0.08); box-shadow: 0 0 12px rgba(170,255,170,0.25); }
+.cat-badge.cog { border-color: #88ffcc; color: #88ffcc; background: rgba(136,255,204,0.08); box-shadow: 0 0 12px rgba(136,255,204,0.25); }
+.cat-badge.immune { border-color: #00dd44; color: #00dd44; background: rgba(0,221,68,0.08); box-shadow: 0 0 12px rgba(0,221,68,0.25); }
+.cat-badge.organ { border-color: #55ff99; color: #55ff99; background: rgba(85,255,153,0.08); box-shadow: 0 0 12px rgba(85,255,153,0.25); }
+.cat-badge.metabolic { border-color: #ff2200; color: #ff2200; background: rgba(255,34,0,0.08); box-shadow: 0 0 12px rgba(255,34,0,0.25); }
+.cat-badge.sexual { border-color: #00bb44; color: #00bb44; background: rgba(0,187,68,0.08); box-shadow: 0 0 12px rgba(0,187,68,0.25); }
+.cat-badge.tanning { border-color: #77ffaa; color: #77ffaa; background: rgba(119,255,170,0.08); box-shadow: 0 0 12px rgba(119,255,170,0.25); }
 
 /* ─── CUSTOM SELECT ─── */
 .select-wrapper {
@@ -216,7 +216,7 @@ body::after {
 .custom-select:focus,
 .custom-select:hover {
   border-color: var(--cyan);
-  box-shadow: 0 0 16px rgba(0,245,255,0.15);
+  box-shadow: 0 0 16px rgba(0,180,60,0.2);
 }
 
 .custom-select option {
@@ -249,7 +249,7 @@ body::after {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #00aaff;
+  color: #00cc44;
   margin-bottom: 7px;
   display: block;
 }
@@ -313,8 +313,8 @@ body::after {
   font-size: 0.52rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #aaff00;
-  opacity: 0.8;
+  color: #00cc44;
+  opacity: 0.9;
   margin-bottom: 5px;
 }
 
@@ -336,11 +336,11 @@ body::after {
   font-size: 0.58rem;
   letter-spacing: 0.12em;
   padding: 3px 9px;
-  border: 1px solid rgba(170,255,0,0.4);
+  border: 1px solid rgba(0,204,68,0.4);
   border-radius: 2px;
-  color: rgba(170,255,0,0.9);
+  color: rgba(0,220,80,0.95);
   text-transform: uppercase;
-  background: rgba(170,255,0,0.06);
+  background: rgba(0,204,68,0.06);
 }
 
 /* ─── CALC INPUTS ─── */
@@ -398,7 +398,7 @@ body::after {
   font-size: 0.52rem;
   letter-spacing: 0.25em;
   text-transform: uppercase;
-  color: #00aaff;
+  color: #00cc44;
 }
 
 .output-line-value {
@@ -417,13 +417,13 @@ body::after {
 }
 
 .output-line-value.secondary {
-  color: #aaff00;
-  text-shadow: 0 0 10px rgba(170,255,0,0.5);
+  color: #00cc44;
+  text-shadow: 0 0 10px rgba(0,204,68,0.5);
 }
 
 .output-line-value.tertiary {
-  color: #00ff88;
-  text-shadow: 0 0 10px rgba(0,255,136,0.4);
+  color: #00ff66;
+  text-shadow: 0 0 10px rgba(0,255,100,0.4);
 }
 
 .output-line-value.white {
@@ -432,7 +432,7 @@ body::after {
 
 .output-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(0,180,60,0.3), transparent);
   margin: 4px 0;
 }
 
@@ -445,7 +445,7 @@ body::after {
   display: inline-block;
   width: 8px;
   height: 1.1em;
-  background: var(--cyan);
+  background: #00cc44;
   vertical-align: text-bottom;
   animation: blink 0.8s step-end infinite;
   margin-left: 2px;
@@ -457,8 +457,8 @@ body::after {
   align-items: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid rgba(170,255,0,0.4);
-  color: #aaff00;
+  border: 1px solid rgba(0,204,68,0.4);
+  color: #00cc44;
   font-family: var(--text-head);
   font-size: 0.6rem;
   font-weight: 600;
@@ -472,9 +472,9 @@ body::after {
 }
 
 .reset-btn:hover {
-  background: rgba(170,255,0,0.1);
-  border-color: #aaff00;
-  box-shadow: 0 0 20px rgba(170,255,0,0.2);
+  background: rgba(0,204,68,0.1);
+  border-color: #00cc44;
+  box-shadow: 0 0 20px rgba(0,204,68,0.2);
 }
 
 /* ─── STATUS BAR ─── */
@@ -494,8 +494,8 @@ body::after {
 .status-dot {
   width: 6px; height: 6px;
   border-radius: 50%;
-  background: #00ff88;
-  box-shadow: 0 0 8px #00ff88;
+  background: #00cc44;
+  box-shadow: 0 0 8px #00cc44;
   animation: blink 2s ease-in-out infinite;
 }
 
