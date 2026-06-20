@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEPTIDE CALC // BIOHACK LABS</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #050a0e;
+  --cyan: #00f5ff;
+  --magenta: #ff006e;
+  --white: #e8f4f8;
+  --dim: #00aaff;
+  --panel-bg: rgba(0,245,255,0.04);
+  --panel-border: rgba(0,245,255,0.18);
+  --panel-glow: rgba(0,245,255,0.08);
+  --text-mono: 'Share Tech Mono', monospace;
+  --text-head: 'Orbitron', sans-serif;
+}
+
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--white);
+  font-family: var(--text-mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* ─── HEX GRID BACKGROUND ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(0,245,255,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255,0,110,0.03) 0%, transparent 40%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='52'%3E%3Cpath d='M30 2 L58 17 L58 35 L30 50 L2 35 L2 17 Z' fill='none' stroke='rgba(0,245,255,0.04)' stroke-width='0.5'/%3E%3C/svg%3E");
+  background-size: auto, auto, 60px 52px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── SCANLINE OVERLAY ─── */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.08) 2px,
+    rgba(0,0,0,0.08) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+.app-wrapper {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ─── HEADER ─── */
+.site-header {
+  text-align: center;
+  padding: 40px 0 32px;
+  position: relative;
+}
+
+.site-header::after {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--magenta), transparent);
+  margin-top: 28px;
+  opacity: 0.6;
+}
+
+.logo-eyebrow {
+  font-family: var(--text-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.35em;
+  color: #aaff00;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  opacity: 0.85;
+}
+
+.logo-title {
+  font-family: var(--text-head);
+  font-size: clamp(1.5rem, 5vw, 2.6rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, var(--cyan) 0%, #fff 50%, var(--magenta) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+
+.logo-sub {
+  font-family: var(--text-mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.25em;
+  color: var(--dim);
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+/* ─── PANELS ─── */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  padding: 24px;
+  margin-bottom: 18px;
+  position: relative;
+  box-shadow:
+    0 0 30px var(--panel-glow),
+    inset 0 1px 0 rgba(0,245,255,0.1);
+  backdrop-filter: blur(4px);
+  overflow: hidden;
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.5;
+}
+
+.panel-label {
+  font-family: var(--text-head);
+  font-size: 0.55rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  opacity: 0.7;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-label::before {
+  content: '//';
+  color: #aaff00;
+  opacity: 0.8;
+}
+
+/* ─── CATEGORY BADGE ─── */
+.cat-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-family: var(--text-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  border: 1px solid;
+  position: relative;
+}
+
+.cat-badge.gh { border-color: #00f5ff; color: #00f5ff; background: rgba(0,245,255,0.08); box-shadow: 0 0 12px rgba(0,245,255,0.25); }
+.cat-badge.mito { border-color: #ffe600; color: #ffe600; background: rgba(255,230,0,0.08); box-shadow: 0 0 12px rgba(255,230,0,0.25); }
+.cat-badge.repair { border-color: #00ff88; color: #00ff88; background: rgba(0,255,136,0.08); box-shadow: 0 0 12px rgba(0,255,136,0.25); }
+.cat-badge.senolytic { border-color: #ff6b35; color: #ff6b35; background: rgba(255,107,53,0.08); box-shadow: 0 0 12px rgba(255,107,53,0.25); }
+.cat-badge.epitalon { border-color: #c77dff; color: #c77dff; background: rgba(199,125,255,0.08); box-shadow: 0 0 12px rgba(199,125,255,0.25); }
+.cat-badge.cog { border-color: #74b9ff; color: #74b9ff; background: rgba(116,185,255,0.08); box-shadow: 0 0 12px rgba(116,185,255,0.25); }
+.cat-badge.immune { border-color: #fd79a8; color: #fd79a8; background: rgba(253,121,168,0.08); box-shadow: 0 0 12px rgba(253,121,168,0.25); }
+.cat-badge.organ { border-color: #e17055; color: #e17055; background: rgba(225,112,85,0.08); box-shadow: 0 0 12px rgba(225,112,85,0.25); }
+.cat-badge.metabolic { border-color: #ff006e; color: #ff006e; background: rgba(255,0,110,0.08); box-shadow: 0 0 12px rgba(255,0,110,0.25); }
+.cat-badge.sexual { border-color: #ff7675; color: #ff7675; background: rgba(255,118,117,0.08); box-shadow: 0 0 12px rgba(255,118,117,0.25); }
+.cat-badge.tanning { border-color: #fdcb6e; color: #fdcb6e; background: rgba(253,203,110,0.08); box-shadow: 0 0 12px rgba(253,203,110,0.25); }
+
+/* ─── CUSTOM SELECT ─── */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select {
+  width: 100%;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid var(--panel-border);
+  border-radius: 3px;
+  color: var(--white);
+  font-family: var(--text-mono);
+  font-size: 0.78rem;
+  padding: 12px 40px 12px 14px;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.custom-select:focus,
+.custom-select:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 16px rgba(0,245,255,0.15);
+}
+
+.custom-select option {
+  background: #08141c;
+  color: var(--white);
+  text-transform: uppercase;
+}
+
+.custom-select optgroup {
+  background: #030810;
+  color: var(--magenta);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.select-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--cyan);
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.select-label {
+  font-family: var(--text-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #00aaff;
+  margin-bottom: 7px;
+  display: block;
+}
+
+/* ─── INFO PANEL ─── */
+.info-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.info-panel.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.peptide-name {
+  font-family: var(--text-head);
+  font-size: clamp(1rem, 3vw, 1.3rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--white);
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+
+.peptide-common {
+  font-family: var(--text-mono);
+  font-size: 0.7rem;
+  color: var(--cyan);
+  letter-spacing: 0.15em;
+  margin-bottom: 14px;
+  opacity: 0.8;
+}
+
+.peptide-desc {
+  font-family: var(--text-mono);
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: rgba(232,244,248,0.75);
+  margin-bottom: 18px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.info-chip {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,245,255,0.1);
+  border-radius: 3px;
+  padding: 10px 12px;
+}
+
+.info-chip-label {
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #aaff00;
+  opacity: 0.8;
+  margin-bottom: 5px;
+}
+
+.info-chip-value {
+  font-size: 0.72rem;
+  color: var(--cyan);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.synergy-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.synergy-tag {
+  font-size: 0.58rem;
+  letter-spacing: 0.12em;
+  padding: 3px 9px;
+  border: 1px solid rgba(170,255,0,0.4);
+  border-radius: 2px;
+  color: rgba(170,255,0,0.9);
+  text-transform: uppercase;
+  background: rgba(170,255,0,0.06);
+}
+
+/* ─── CALC INPUTS ─── */
+.calc-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.calc-panel.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── OUTPUT PANEL ─── */
+.output-panel {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.output-panel.visible {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.output-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.output-line {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.output-line-label {
+  font-size: 0.52rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: #00aaff;
+}
+
+.output-line-value {
+  font-family: var(--text-mono);
+  font-size: clamp(0.85rem, 2.5vw, 1.05rem);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  overflow: hidden;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.output-line-value.primary {
+  color: var(--cyan);
+  text-shadow: 0 0 12px rgba(0,245,255,0.5);
+}
+
+.output-line-value.secondary {
+  color: #aaff00;
+  text-shadow: 0 0 10px rgba(170,255,0,0.5);
+}
+
+.output-line-value.tertiary {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0,255,136,0.4);
+}
+
+.output-line-value.white {
+  color: var(--white);
+}
+
+.output-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,245,255,0.2), transparent);
+  margin: 4px 0;
+}
+
+/* ─── BLINKER ─── */
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.blinker {
+  display: inline-block;
+  width: 8px;
+  height: 1.1em;
+  background: var(--cyan);
+  vertical-align: text-bottom;
+  animation: blink 0.8s step-end infinite;
+  margin-left: 2px;
+}
+
+/* ─── RESET BUTTON ─── */
+.reset-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid rgba(170,255,0,0.4);
+  color: #aaff00;
+  font-family: var(--text-head);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  padding: 10px 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 8px 0 0;
+}
+
+.reset-btn:hover {
+  background: rgba(170,255,0,0.1);
+  border-color: #aaff00;
+  box-shadow: 0 0 20px rgba(170,255,0,0.2);
+}
+
+/* ─── STATUS BAR ─── */
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dim);
+  margin-bottom: 20px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,245,255,0.06);
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #00ff88;
+  box-shadow: 0 0 8px #00ff88;
+  animation: blink 2s ease-in-out infinite;
+}
+
+/* ─── DISCLAIMER ─── */
+.disclaimer {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(5,10,14,0.92);
+  border-top: 1px solid rgba(0,245,255,0.08);
+  padding: 8px 16px;
+  text-align: center;
+  font-size: 0.55rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--dim);
+  z-index: 100;
+  backdrop-filter: blur(6px);
+}
+
+/* ─── TYPING ANIMATION ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeUp 0.35s ease forwards;
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 480px) {
+  .panel { padding: 16px 14px; }
+  .info-grid { grid-template-columns: 1fr 1fr; }
+  .inputs-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app-wrapper">
+
+  <!-- HEADER -->
+  <header class="site-header">
+    <p class="logo-eyebrow">▸ BIOHACK LABS — SYSTEM v2.4.1</p>
+    <h1 class="logo-title">Peptide Calc</h1>
+    <p class="logo-sub">Reconstitution &amp; Dosage Calculator</p>
+  </header>
+
+  <!-- STATUS -->
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    <span>Systems nominal</span>
+    <span style="margin-left:auto">DB: 58 compounds loaded</span>
+  </div>
+
+  <!-- STEP 1: SELECT PEPTIDE -->
+  <div class="panel">
+    <div class="panel-label">Step 01 — Compound Selection</div>
+    <div class="select-wrapper">
+      <select class="custom-select" id="peptideSelect">
+        <option value="">— SELECT COMPOUND —</option>
+
+        <optgroup label="⬡ GH AXIS">
+          <option value="cjc1295">CJC-1295 NO DAC</option>
+          <option value="ipamorelin">IPAMORELIN</option>
+          <option value="tesamorelin">TESAMORELIN</option>
+          <option value="igflr3">IGF-1 LR3</option>
+        </optgroup>
+
+        <optgroup label="⬡ MITOCHONDRIAL / ENERGY">
+          <option value="ss31">SS-31 (ELAMIPEPTIDE)</option>
+          <option value="motsc">MOTS-C</option>
+          <option value="5amino1mq">5-AMINO-1MQ</option>
+          <option value="humanin">HUMANIN</option>
+          <option value="nadplus">NAD+</option>
+          <option value="glutathione">GLUTATHIONE</option>
+          <option value="lcarnitine">L-CARNITINE</option>
+        </optgroup>
+
+        <optgroup label="⬡ REPAIR / RECOVERY">
+          <option value="bpc157">BPC-157</option>
+          <option value="tb500">TB-500 (THYMOSIN BETA-4)</option>
+          <option value="ghkcu">GHK-CU (COPPER PEPTIDE)</option>
+          <option value="kpv">KPV</option>
+          <option value="larazotide">LARAZOTIDE (AT-1001)</option>
+          <option value="aod9604">AOD-9604</option>
+          <option value="bronchogen">BRONCHOGEN</option>
+          <option value="chronluten">CHRONLUTEN</option>
+        </optgroup>
+
+        <optgroup label="⬡ SENOLYTIC / ANTI-AGING">
+          <option value="foxo4dri">FOXO4-DRI</option>
+        </optgroup>
+
+        <optgroup label="⬡ EPITALON TRIAD">
+          <option value="epitalon">EPITALON</option>
+          <option value="vilon">VILON</option>
+          <option value="livagen">LIVAGEN</option>
+        </optgroup>
+
+        <optgroup label="⬡ COGNITIVE / NEURO">
+          <option value="semax">SEMAX</option>
+          <option value="selank">SELANK</option>
+          <option value="dihexa">ADAMAX (DIHEXA)</option>
+          <option value="pe2228">PE-22-28</option>
+          <option value="pinealon">PINEALON</option>
+          <option value="dsip">DSIP</option>
+          <option value="cortagen">CORTAGEN</option>
+          <option value="cerebrolysin">CEREBROLYSIN</option>
+        </optgroup>
+
+        <optgroup label="⬡ IMMUNE">
+          <option value="ta1">THYMOSIN ALPHA-1 (TA1)</option>
+          <option value="thymalin">THYMALIN</option>
+          <option value="ll37">LL-37 (CATHELICIDIN)</option>
+        </optgroup>
+
+        <optgroup label="⬡ ORGAN BIOREGULATORS">
+          <option value="cardiogen">CARDIOGEN</option>
+          <option value="b733">B7-33</option>
+          <option value="ovagen">OVAGEN</option>
+          <option value="pancragen">PANCRAGEN</option>
+          <option value="vesugen">VESUGEN</option>
+          <option value="cartalax">CARTALAX</option>
+          <option value="testagen">TESTAGEN</option>
+          <option value="prostamax">PROSTAMAX</option>
+          <option value="crystagen">CRYSTAGEN</option>
+        </optgroup>
+
+        <optgroup label="⬡ METABOLIC / GLP-1">
+          <option value="semaglutide">SEMAGLUTIDE (OZEMPIC/WEGOVY)</option>
+          <option value="tirzepatide">TIRZEPATIDE (MOUNJARO)</option>
+          <option value="retatrutide">RETATRUTIDE (GLP-1/GIP/GCGR TRIPLE AGONIST)</option>
+          <option value="liraglutide">LIRAGLUTIDE (VICTOZA/SAXENDA)</option>
+          <option value="cagrilintide">CAGRILINTIDE (AMYLIN ANALOGUE)</option>
+        </optgroup>
+
+        <optgroup label="⬡ SEXUAL HEALTH">
+          <option value="pt141">PT-141 (BREMELANOTIDE)</option>
+          <option value="kisspeptin10">KISSPEPTIN-10</option>
+          <option value="oxytocin">OXYTOCIN</option>
+        </optgroup>
+
+        <optgroup label="⬡ TANNING / PIGMENTATION">
+          <option value="melanotanI">MELANOTAN I (AFAMELANOTIDE)</option>
+          <option value="melanotanII">MELANOTAN II</option>
+        </optgroup>
+
+      </select>
+      <span class="select-arrow">▾</span>
+    </div>
+  </div>
+
+  <!-- INFO PANEL -->
+  <div class="panel info-panel" id="infoPanel">
+    <div class="panel-label">Compound Data</div>
+    <div id="infoBadge"></div>
+    <div class="peptide-name" id="infoName"></div>
+    <div class="peptide-common" id="infoCommon"></div>
+    <div class="peptide-desc" id="infoDesc"></div>
+    <div class="info-grid" id="infoGrid"></div>
+    <div style="margin-top:14px">
+      <div class="select-label" style="margin-bottom:8px">Synergy Pairs</div>
+      <div class="synergy-list" id="synergyList"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: CALC INPUTS -->
+  <div class="panel calc-panel" id="calcPanel">
+    <div class="panel-label">Step 02 — Reconstitution Parameters</div>
+    <div class="inputs-grid">
+      <div class="input-group">
+        <label class="select-label" for="vialSize">Vial Size</label>
+        <div class="select-wrapper">
+          <select class="custom-select" id="vialSize">
+            <option value="">— SELECT —</option>
+            <option value="2">2 MG</option>
+            <option value="5">5 MG</option>
+            <option value="10">10 MG</option>
+            <option value="12">12 MG</option>
+            <option value="15">15 MG</option>
+            <option value="20">20 MG</option>
+            <option value="30">30 MG</option>
+            <option value="40">40 MG</option>
+            <option value="50">50 MG</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="select-label" for="bacWater">BAC Water Amount</label>
+        <div class="select-wrapper">
+          <select class="custom-select" id="bacWater">
+            <option value="">— SELECT —</option>
+            <option value="0.5">0.5 ML</option>
+            <option value="1">1 ML</option>
+            <option value="1.5">1.5 ML</option>
+            <option value="2">2 ML</option>
+            <option value="2.5">2.5 ML</option>
+            <option value="3">3 ML</option>
+            <option value="4">4 ML</option>
+            <option value="5">5 ML</option>
+            <option value="10">10 ML</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="select-label" for="desiredDose">Desired Dose</label>
+        <div class="select-wrapper">
+          <select class="custom-select" id="desiredDose">
+            <option value="">— SELECT PEPTIDE FIRST —</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+      </div>
+
+      <div class="input-group">
+        <label class="select-label" for="syringeType">Syringe Type</label>
+        <div class="select-wrapper">
+          <select class="custom-select" id="syringeType">
+            <option value="">— SELECT —</option>
+            <option value="u100">U-100 INSULIN 1ML</option>
+            <option value="u40">U-40 INSULIN 1ML</option>
+            <option value="half">0.5ML SYRINGE</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="reset-btn" id="resetBtn">
+      <span>↺</span> RESET ALL
+    </button>
+  </div>
+
+  <!-- STEP 3: OUTPUT -->
+  <div class="panel output-panel" id="outputPanel">
+    <div class="panel-label">Step 03 — Reconstitution Output</div>
+    <div class="output-lines" id="outputLines"></div>
+  </div>
+
+</div>
+
+<!-- DISCLAIMER -->
+<div class="disclaimer">
+  FOR INFORMATIONAL PURPOSES ONLY. NOT MEDICAL ADVICE. CONSULT A LICENSED PHYSICIAN BEFORE USE.
+</div>
+
+<script>
+/* ========================================================
+   PEPTIDE DATABASE
+======================================================== */
+const PEPTIDES = {
+  // GH AXIS
+  cjc1295: {
+    name: 'CJC-1295 No DAC',
+    common: 'Modified GRF (1-29)',
+    category: 'GH Axis',
+    catClass: 'gh',
+    desc: 'A modified growth hormone releasing hormone (GHRH) analogue that stimulates pulsatile GH secretion from the pituitary. Preferred over DAC version for its shorter half-life (~30 min), mimicking natural GH pulses. Commonly used for body composition, fat loss, and recovery when stacked with a GHRP.',
+    startDose: '100 MCG',
+    frequency: '2-3X DAILY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Ipamorelin', 'GHRP-6', 'Tesamorelin', 'IGF-1 LR3'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'300 mcg', val:0.3, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+  ipamorelin: {
+    name: 'Ipamorelin',
+    common: 'Selective GH Secretagogue',
+    category: 'GH Axis',
+    catClass: 'gh',
+    desc: 'A selective growth hormone secretagogue and ghrelin mimetic. Prized for clean, pulse-like GH release with minimal cortisol or prolactin elevation. Stacked with CJC-1295 No DAC for a synergistic amplification of GH output, popular in anti-aging and body recomposition protocols.',
+    startDose: '100 MCG',
+    frequency: '2-3X DAILY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['CJC-1295 No DAC', 'Tesamorelin', 'MK-677'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'300 mcg', val:0.3, unit:'mg'}],
+    isMcg: true
+  },
+  tesamorelin: {
+    name: 'Tesamorelin',
+    common: 'Egrifta / GHRH Analogue',
+    category: 'GH Axis',
+    catClass: 'gh',
+    desc: 'FDA-approved GHRH analogue shown to reduce visceral adipose tissue. Stimulates endogenous GH secretion with strong evidence for trunk fat reduction. Used off-label for anti-aging, cognitive benefits, and body composition without suppressing the HPG axis.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Ipamorelin', 'CJC-1295 No DAC', 'IGF-1 LR3'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  igflr3: {
+    name: 'IGF-1 LR3',
+    common: 'Long R3 Insulin-Like Growth Factor 1',
+    category: 'GH Axis',
+    catClass: 'gh',
+    desc: 'A potent, long-acting analogue of IGF-1 with ~70x greater potency than native IGF-1 due to reduced IGF-1 binding protein affinity. Promotes muscle hyperplasia, satellite cell activation, and enhanced nutrient partitioning. Requires careful dosing due to hypoglycemia risk.',
+    startDose: '20 MCG',
+    frequency: 'POST-WORKOUT',
+    route: 'SUBCUTANEOUS / INTRAMUSCULAR',
+    synergy: ['CJC-1295 No DAC', 'Ipamorelin', 'BPC-157'],
+    doses: [{label:'20 mcg', val:0.02, unit:'mg'},{label:'40 mcg', val:0.04, unit:'mg'},{label:'60 mcg', val:0.06, unit:'mg'},{label:'80 mcg', val:0.08, unit:'mg'},{label:'100 mcg', val:0.1, unit:'mg'}],
+    isMcg: true
+  },
+
+  // MITOCHONDRIAL / ENERGY
+  ss31: {
+    name: 'SS-31',
+    common: 'Elamipeptide / Bendavia',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'A mitochondria-targeted tetrapeptide that localizes to the inner mitochondrial membrane, reducing oxidative stress and restoring ATP production. Shows promise in heart failure, ischemia-reperfusion injury, aging-related mitochondrial dysfunction, and exercise recovery.',
+    startDose: '5 MG',
+    frequency: '3-5X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['MOTS-C', 'NAD+', 'Humanin'],
+    doses: [{label:'2 mg', val:2, unit:'mg'},{label:'5 mg', val:5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'}],
+    isMcg: false
+  },
+  motsc: {
+    name: 'MOTS-C',
+    common: 'Mitochondrial ORF of the 12S rRNA-c',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'A mitochondrial-derived peptide (MDP) that regulates metabolic homeostasis, improves insulin sensitivity, and activates AMPK. Research shows anti-obesity effects, improved exercise capacity, and potential lifespan extension. One of the most compelling longevity peptides in current research.',
+    startDose: '5 MG',
+    frequency: '3X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['SS-31', 'Humanin', 'NAD+', 'Epitalon'],
+    doses: [{label:'5 mg', val:5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'},{label:'15 mg', val:15, unit:'mg'}],
+    isMcg: false
+  },
+  '5amino1mq': {
+    name: '5-Amino-1MQ',
+    common: 'NNMT Inhibitor',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'A small molecule inhibitor of NNMT (nicotinamide N-methyltransferase) that boosts intracellular NAD+ levels and SAM availability. Research shows potent fat cell shrinkage, improved mitochondrial function, and potential anti-obesity effects without systemic toxicity.',
+    startDose: '100 MG',
+    frequency: 'ONCE DAILY (ORAL)',
+    route: 'ORAL',
+    synergy: ['NAD+', 'MOTS-C', 'SS-31'],
+    doses: [{label:'50 mg', val:50, unit:'mg'},{label:'100 mg', val:100, unit:'mg'},{label:'200 mg', val:200, unit:'mg'}],
+    isMcg: false
+  },
+  humanin: {
+    name: 'Humanin',
+    common: 'HN / Mitochondrial Peptide',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'A 21-amino acid mitochondria-encoded peptide with neuroprotective, cardioprotective, and cytoprotective effects. Circulating levels decline with age. Research links higher humanin levels to longevity and protection against Alzheimer\'s-related pathology and metabolic dysfunction.',
+    startDose: '2 MG',
+    frequency: '3-5X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['MOTS-C', 'SS-31', 'NAD+'],
+    doses: [{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'},{label:'4 mg', val:4, unit:'mg'}],
+    isMcg: false
+  },
+  nadplus: {
+    name: 'NAD+',
+    common: 'Nicotinamide Adenine Dinucleotide',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'Essential coenzyme for cellular energy metabolism and DNA repair, declining ~50% by age 50. IV/IM supplementation bypasses gut absorption for rapid cellular repletion. Activates sirtuins and PARP enzymes critical for longevity, circadian rhythm, and neurological function.',
+    startDose: '250 MG',
+    frequency: 'ONCE DAILY (IV/IM)',
+    route: 'IV / INTRAMUSCULAR',
+    synergy: ['5-Amino-1MQ', 'MOTS-C', 'Resveratrol', 'SS-31'],
+    doses: [{label:'100 mg', val:100, unit:'mg'},{label:'250 mg', val:250, unit:'mg'},{label:'500 mg', val:500, unit:'mg'}],
+    isMcg: false
+  },
+  glutathione: {
+    name: 'Glutathione',
+    common: 'GSH / Master Antioxidant',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'The body\'s most abundant endogenous antioxidant, critical for oxidative stress defense, detoxification, and immune function. IV/IM administration significantly raises plasma levels compared to oral. Used for liver support, skin brightness, athletic recovery, and mitochondrial health.',
+    startDose: '600 MG',
+    frequency: '2-3X WEEKLY',
+    route: 'IV / INTRAMUSCULAR',
+    synergy: ['NAD+', 'Vitamin C', 'SS-31', 'BPC-157'],
+    doses: [{label:'300 mg', val:300, unit:'mg'},{label:'600 mg', val:600, unit:'mg'},{label:'1200 mg', val:1200, unit:'mg'}],
+    isMcg: false
+  },
+  lcarnitine: {
+    name: 'L-Carnitine',
+    common: 'Levocarnitine',
+    category: 'Mitochondrial / Energy',
+    catClass: 'mito',
+    desc: 'Amino acid derivative essential for mitochondrial fatty acid transport and beta-oxidation. Injectable L-Carnitine achieves far higher plasma levels than oral. Used for fat oxidation, exercise performance, cognitive function, and insulin sensitivity improvement.',
+    startDose: '500 MG',
+    frequency: '3-5X WEEKLY',
+    route: 'INTRAMUSCULAR / IV',
+    synergy: ['NAD+', 'MOTS-C', 'Semaglutide'],
+    doses: [{label:'250 mg', val:250, unit:'mg'},{label:'500 mg', val:500, unit:'mg'},{label:'1000 mg', val:1000, unit:'mg'},{label:'2000 mg', val:2000, unit:'mg'}],
+    isMcg: false
+  },
+
+  // REPAIR / RECOVERY
+  bpc157: {
+    name: 'BPC-157',
+    common: 'Body Protection Compound 157',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'A 15-amino acid peptide derived from a protective gastric protein with remarkable tissue healing properties. Promotes angiogenesis, upregulates growth hormone receptors, and modulates multiple healing pathways. Research shows accelerated repair of tendons, ligaments, gut lining, and muscle.',
+    startDose: '250 MCG',
+    frequency: '1-2X DAILY',
+    route: 'SUBCUTANEOUS / ORAL',
+    synergy: ['TB-500', 'GHK-Cu', 'IGF-1 LR3', 'KPV'],
+    doses: [{label:'125 mcg', val:0.125, unit:'mg'},{label:'250 mcg', val:0.25, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'},{label:'1000 mcg', val:1.0, unit:'mg'}],
+    isMcg: true
+  },
+  tb500: {
+    name: 'TB-500',
+    common: 'Thymosin Beta-4 Synthetic Fragment',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'Synthetic analogue of Thymosin Beta-4, a ubiquitous actin-sequestering protein. Promotes cell migration, angiogenesis, and inflammation regulation. Particularly effective for systemic tissue repair, cardiac protection, and neurological recovery. Widely used by athletes for injury prevention.',
+    startDose: '2 MG',
+    frequency: '2X WEEKLY (LOADING), 1X WEEKLY (MAINTENANCE)',
+    route: 'SUBCUTANEOUS / INTRAMUSCULAR',
+    synergy: ['BPC-157', 'GHK-Cu', 'IGF-1 LR3', 'CJC-1295 No DAC'],
+    doses: [{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'},{label:'2.5 mg', val:2.5, unit:'mg'},{label:'5 mg', val:5, unit:'mg'}],
+    isMcg: false
+  },
+  ghkcu: {
+    name: 'GHK-Cu',
+    common: 'Copper Peptide',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'A naturally occurring copper complex with broad regenerative effects — stimulates collagen synthesis, wound healing, and anti-inflammatory gene expression. Declines dramatically with age. Used for skin rejuvenation, hair follicle activation, nerve repair, and systemic anti-aging protocols.',
+    startDose: '1 MG',
+    frequency: 'DAILY (TOPICAL) / 3X WEEKLY (SQ)',
+    route: 'TOPICAL / SUBCUTANEOUS',
+    synergy: ['BPC-157', 'TB-500', 'Epitalon'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  kpv: {
+    name: 'KPV',
+    common: 'Lysine-Proline-Valine',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'C-terminal tripeptide of alpha-MSH with potent anti-inflammatory properties. Downregulates NF-κB signaling and pro-inflammatory cytokines without immunosuppression. Research supports use in IBD, dermatitis, wound healing, and as a gut-protective adjunct in GI protocols.',
+    startDose: '500 MCG',
+    frequency: '1-2X DAILY',
+    route: 'SUBCUTANEOUS / ORAL',
+    synergy: ['BPC-157', 'Larazotide', 'LL-37'],
+    doses: [{label:'250 mcg', val:0.25, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'},{label:'1000 mcg', val:1.0, unit:'mg'}],
+    isMcg: true
+  },
+  larazotide: {
+    name: 'Larazotide',
+    common: 'AT-1001 / Tight Junction Regulator',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'An 8-amino acid peptide that seals intestinal tight junctions, reducing gut permeability ("leaky gut"). Originally developed for celiac disease, now used in functional medicine for intestinal barrier repair. Taken orally, it acts locally in the GI tract without systemic absorption.',
+    startDose: '0.5 MG',
+    frequency: '3X DAILY (ORAL)',
+    route: 'ORAL',
+    synergy: ['BPC-157', 'KPV', 'Glutathione'],
+    doses: [{label:'0.25 mg', val:0.25, unit:'mg'},{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'}],
+    isMcg: false
+  },
+  aod9604: {
+    name: 'AOD-9604',
+    common: 'Anti-Obesity Drug 9604',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'C-terminal fragment of human growth hormone (hGH176-191) with strong lipolytic properties. Stimulates fat breakdown and inhibits lipogenesis without the diabetogenic or proliferative effects of full hGH. TGA-approved as a food ingredient in Australia, with strong cartilage repair evidence.',
+    startDose: '300 MCG',
+    frequency: 'ONCE DAILY (FASTED)',
+    route: 'SUBCUTANEOUS',
+    synergy: ['CJC-1295 No DAC', 'Ipamorelin', 'Semaglutide'],
+    doses: [{label:'150 mcg', val:0.15, unit:'mg'},{label:'250 mcg', val:0.25, unit:'mg'},{label:'300 mcg', val:0.3, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+  bronchogen: {
+    name: 'Bronchogen',
+    common: 'Ala-Glu-Asp-Leu / Lung Bioregulator',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'A tetrapeptide tissue bioregulator developed by the Khavinson Institute targeting lung tissue. Stimulates bronchial epithelial cell regeneration and reduces markers of pulmonary aging. Used in protocols targeting respiratory function, particularly post-illness recovery and age-related decline.',
+    startDose: '1 MG',
+    frequency: '3X DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Crystagen', 'Cortagen', 'TA1'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  chronluten: {
+    name: 'Chronluten',
+    common: 'Ala-Glu-Asp-Pro / Pineal Bioregulator',
+    category: 'Repair / Recovery',
+    catClass: 'repair',
+    desc: 'A pineal gland tissue bioregulator from the Khavinson peptide series that regulates circadian rhythms and melatonin synthesis. Used for sleep optimization, jet lag correction, and age-related circadian disruption. Often cycled with Epitalon for comprehensive pineal support.',
+    startDose: '1 MG',
+    frequency: '1X DAILY (EVENING)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Epitalon', 'DSIP', 'Pinealon'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+
+  // SENOLYTIC
+  foxo4dri: {
+    name: 'FOXO4-DRI',
+    common: 'FOXO4-p53 Interfering Peptide',
+    category: 'Senolytic / Anti-Aging',
+    catClass: 'senolytic',
+    desc: 'A D-retro-inverso peptide that disrupts the FOXO4-p53 interaction in senescent cells, triggering apoptosis of these "zombie cells" while leaving healthy cells intact. Landmark mouse studies showed reversal of frailty and fur loss. Among the most potent senolytics in the research pipeline.',
+    startDose: '5 MG',
+    frequency: '3 DAYS ON / 2+ WEEKS OFF',
+    route: 'SUBCUTANEOUS / INTRAPERITONEAL',
+    synergy: ['Epitalon', 'MOTS-C', 'NAD+'],
+    doses: [{label:'2.5 mg', val:2.5, unit:'mg'},{label:'5 mg', val:5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'},{label:'15 mg', val:15, unit:'mg'}],
+    isMcg: false
+  },
+
+  // EPITALON TRIAD
+  epitalon: {
+    name: 'Epitalon',
+    common: 'Epithalon / Tetrapeptide',
+    category: 'Epitalon Triad',
+    catClass: 'epitalon',
+    desc: 'A synthetic tetrapeptide (Ala-Glu-Asp-Gly) discovered by Prof. Khavinson that activates telomerase, extends telomere length, and regulates the hypothalamic-pituitary axis. One of the most studied longevity peptides with over 100 publications demonstrating anti-aging, antioxidant, and anti-tumor effects.',
+    startDose: '5 MG',
+    frequency: 'TWICE DAILY (10-DAY COURSE)',
+    route: 'SUBCUTANEOUS / INTRAMUSCULAR',
+    synergy: ['FOXO4-DRI', 'MOTS-C', 'GHK-Cu', 'Pinealon'],
+    doses: [{label:'5 mg', val:5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'},{label:'20 mg', val:20, unit:'mg'}],
+    isMcg: false
+  },
+  vilon: {
+    name: 'Vilon',
+    common: 'Lys-Glu / Immune Bioregulator',
+    category: 'Epitalon Triad',
+    catClass: 'epitalon',
+    desc: 'A dipeptide (Lys-Glu) bioregulator from thymic tissue that modulates immune function, stimulates T-lymphocyte maturation, and improves lymphocyte responsiveness. Part of the Khavinson bioregulator triad often cycled with Epitalon for combined immune/longevity benefits.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Epitalon', 'Livagen', 'TA1'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  livagen: {
+    name: 'Livagen',
+    common: 'Lys-Glu-Asp-Ala / Liver Bioregulator',
+    category: 'Epitalon Triad',
+    catClass: 'epitalon',
+    desc: 'A tetrapeptide bioregulator (Lys-Glu-Asp-Ala) targeting hepatic chromatin structure and gene expression. Research shows activation of lymphocyte chromatin, immunomodulatory effects, and age-related hepatic gene restoration. Cycled with Epitalon and Vilon for the Khavinson longevity protocol.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Epitalon', 'Vilon', 'Pancragen'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+
+  // COGNITIVE / NEURO
+  semax: {
+    name: 'Semax',
+    common: 'ACTH(4-7) Pro-Gly-Pro Analogue',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A heptapeptide analogue of ACTH developed in Russia that increases BDNF, NGF, and serotonin. Used for cognitive enhancement, focus, anxiety reduction, and neuroprotection. Rapidly absorbed intranasally. A cornerstone of nootropic peptide protocols with decades of clinical use in Russia.',
+    startDose: '300 MCG',
+    frequency: '1-2X DAILY (INTRANASAL)',
+    route: 'INTRANASAL',
+    synergy: ['Selank', 'Adamax', 'NAD+', 'Cerebrolysin'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'300 mcg', val:0.3, unit:'mg'},{label:'600 mcg', val:0.6, unit:'mg'}],
+    isMcg: true
+  },
+  selank: {
+    name: 'Selank',
+    common: 'Tuftsin Analogue Anxiolytic',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A synthetic analogue of the immunomodulatory peptide Tuftsin (Thr-Lys-Pro-Arg) with anxiolytic, nootropic, and antidepressant effects. Acts via GABA-A modulation and upregulation of BDNF without addiction or sedation. Commonly paired with Semax for a comprehensive cognitive stack.',
+    startDose: '250 MCG',
+    frequency: '1-2X DAILY (INTRANASAL)',
+    route: 'INTRANASAL',
+    synergy: ['Semax', 'PE-22-28', 'DSIP'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'250 mcg', val:0.25, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+  dihexa: {
+    name: 'Adamax (Dihexa)',
+    common: 'PNB-0408 / HGF Potentiator',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A highly potent angiotensin IV analogue and HGF/MET system potentiator with extraordinary cognitive enhancement properties — estimated 10 million times more potent than BDNF in some assays. Research shows dendritic spine growth, synaptogenesis, and reversal of cognitive deficits in aged animal models.',
+    startDose: '1 MG',
+    frequency: '2-3X WEEKLY (TRANSDERMAL/ORAL)',
+    route: 'TRANSDERMAL / ORAL / SUBCUTANEOUS',
+    synergy: ['Semax', 'Cerebrolysin', 'NAD+'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'},{label:'3 mg', val:3, unit:'mg'},{label:'5 mg', val:5, unit:'mg'}],
+    isMcg: false
+  },
+  pe2228: {
+    name: 'PE-22-28',
+    common: 'Truncated SPADIN / TREK-1 Inhibitor',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A synthetic analogue of the naturally occurring antidepressant peptide SPADIN that selectively blocks TREK-1 potassium channels. Research demonstrates antidepressant effects with rapid onset and a favorable safety profile. Being investigated as a fast-acting alternative to traditional antidepressants.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Selank', 'DSIP', 'Semax'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  pinealon: {
+    name: 'Pinealon',
+    common: 'Glu-Asp-Arg / Pineal Bioregulator',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A Khavinson tripeptide targeting pineal and neurological tissue. Crosses the blood-brain barrier and improves neuronal survival, melatonin regulation, and cognitive function. Research shows antidepressant effects and protection against hypoxia-induced neuronal damage.',
+    startDose: '2 MG',
+    frequency: '1X DAILY (EVENING)',
+    route: 'ORAL (SUBLINGUAL) / SUBCUTANEOUS',
+    synergy: ['Epitalon', 'Chronluten', 'DSIP'],
+    doses: [{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'},{label:'5 mg', val:5, unit:'mg'}],
+    isMcg: false
+  },
+  dsip: {
+    name: 'DSIP',
+    common: 'Delta Sleep Inducing Peptide',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A neuropeptide originally isolated from rabbit cerebral venous blood during slow-wave sleep. Promotes natural sleep architecture, reduces stress-induced ACTH release, and possesses anxiolytic and analgesic properties. Used for insomnia, sleep quality optimization, and stress protocols.',
+    startDose: '100 MCG',
+    frequency: '1X NIGHTLY (PRE-SLEEP)',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Selank', 'Pinealon', 'Chronluten'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'300 mcg', val:0.3, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+  cortagen: {
+    name: 'Cortagen',
+    common: 'Ala-Glu-Asp-Pro / CNS Bioregulator',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A Khavinson tetrapeptide bioregulator targeting central nervous system tissue. Activates neuronal gene expression, promotes CNS repair, and exhibits neuroprotective effects in aging-related neurodegeneration models. Often used in neurological recovery protocols and cognitive maintenance.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL) / SUBCUTANEOUS',
+    synergy: ['Cerebrolysin', 'Semax', 'Pinealon'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  cerebrolysin: {
+    name: 'Cerebrolysin',
+    common: 'FPE 1070 / Porcine Brain Peptide Mix',
+    category: 'Cognitive / Neuro',
+    catClass: 'cog',
+    desc: 'A standardized porcine brain-derived peptide mixture with BDNF-like neurotrophic activity. Approved in numerous countries for stroke, TBI, and Alzheimer\'s treatment. Promotes neuroplasticity, protects neurons from excitotoxicity, and improves cognitive metrics in both healthy and impaired populations.',
+    startDose: '5 ML',
+    frequency: 'ONCE DAILY (10-DAY COURSE)',
+    route: 'INTRAMUSCULAR / IV',
+    synergy: ['Semax', 'Adamax', 'NAD+', 'Cortagen'],
+    doses: [{label:'2 ml', val:2, unit:'mg'},{label:'5 ml', val:5, unit:'mg'},{label:'10 ml', val:10, unit:'mg'}],
+    isMcg: false
+  },
+
+  // IMMUNE
+  ta1: {
+    name: 'Thymosin Alpha-1',
+    common: 'TA1 / Zadaxin',
+    category: 'Immune',
+    catClass: 'immune',
+    desc: 'FDA-approved thymic peptide that modulates innate and adaptive immunity by stimulating T-cell maturation and dendritic cell function. Used as an immunoadjuvant for cancer, HIV, hepatitis B/C, and as a general immune optimization peptide. Strong safety record with decades of clinical use.',
+    startDose: '1.5 MG',
+    frequency: '2X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Thymalin', 'BPC-157', 'LL-37'],
+    doses: [{label:'1 mg', val:1, unit:'mg'},{label:'1.5 mg', val:1.5, unit:'mg'},{label:'3 mg', val:3, unit:'mg'}],
+    isMcg: false
+  },
+  thymalin: {
+    name: 'Thymalin',
+    common: 'Thymus Polypeptide Bioregulator',
+    category: 'Immune',
+    catClass: 'immune',
+    desc: 'A Khavinson thymus bioregulator peptide mixture that stimulates thymic hormone production, T-lymphocyte differentiation, and NK cell activity. A landmark 20-year Russian clinical study showed significant mortality reduction in elderly patients. Considered foundational in longevity-focused immune restoration.',
+    startDose: '5 MG',
+    frequency: 'ONCE DAILY (10-DAY COURSE)',
+    route: 'SUBCUTANEOUS / INTRAMUSCULAR',
+    synergy: ['TA1', 'Vilon', 'Epitalon'],
+    doses: [{label:'5 mg', val:5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'}],
+    isMcg: false
+  },
+  ll37: {
+    name: 'LL-37',
+    common: 'Cathelicidin / Human Antimicrobial Peptide',
+    category: 'Immune',
+    catClass: 'immune',
+    desc: 'The only human cathelicidin antimicrobial peptide, with broad-spectrum activity against bacteria, viruses, and fungi. Beyond direct antimicrobial effects, LL-37 modulates inflammation, promotes wound healing, angiogenesis, and has emerging evidence in cancer therapy and gut protection.',
+    startDose: '100 MCG',
+    frequency: '3-5X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['TA1', 'BPC-157', 'KPV'],
+    doses: [{label:'50 mcg', val:0.05, unit:'mg'},{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+
+  // ORGAN BIOREGULATORS
+  cardiogen: {
+    name: 'Cardiogen',
+    common: 'Ala-Glu-Asp-Arg / Heart Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide bioregulator targeting cardiac muscle gene expression. Research shows activation of cardiomyocyte protein synthesis, anti-ischemic properties, and improvement of myocardial function in aging models. Used as a preventive and reparative agent in cardiovascular longevity protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Vesugen', 'Epitalon', 'SS-31'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  b733: {
+    name: 'B7-33',
+    common: 'Single-Chain Relaxin Mimetic',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A synthetic single-chain peptide mimicking relaxin\'s anti-fibrotic activity via RXFP1 receptor activation. Research demonstrates potent anti-fibrotic effects in cardiac, renal, and pulmonary tissue without relaxin\'s hormonal side effects. A promising compound for organ fibrosis prevention and treatment.',
+    startDose: '50 MCG',
+    frequency: '3X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Cardiogen', 'BPC-157', 'GHK-Cu'],
+    doses: [{label:'25 mcg', val:0.025, unit:'mg'},{label:'50 mcg', val:0.05, unit:'mg'},{label:'100 mcg', val:0.1, unit:'mg'}],
+    isMcg: true
+  },
+  ovagen: {
+    name: 'Ovagen',
+    common: 'Glu-Asp-Leu / Liver Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tripeptide targeting liver and gastrointestinal tissue, stimulating hepatocyte regeneration and liver function normalization. Research supports hepatoprotective effects and improvement of liver enzyme profiles. Often used in detox and liver restoration protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Livagen', 'Glutathione', 'NAD+'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  pancragen: {
+    name: 'Pancragen',
+    common: 'Lys-Glu-Asp-Ala / Pancreas Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide targeting pancreatic beta and acinar cells. Research shows normalization of insulin secretion, amylase activity, and pancreatic gene expression. Used in metabolic protocols and as a preventive measure against age-related pancreatic decline.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Livagen', 'Semaglutide', 'MOTS-C'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  vesugen: {
+    name: 'Vesugen',
+    common: 'Lys-Glu-Asp / Vascular Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tripeptide targeting vascular endothelial cells, reducing atherosclerotic plaque formation and improving vessel wall integrity. Research shows improved endothelial cell proliferation and anti-atherogenic gene expression. Core component of cardiovascular anti-aging protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Cardiogen', 'Epitalon', 'GHK-Cu'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  cartalax: {
+    name: 'Cartalax',
+    common: 'Ala-Glu-Asp-Pro / Cartilage Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide bioregulator stimulating chondrocyte and connective tissue gene expression. Research shows activation of cartilage matrix protein synthesis and anti-inflammatory effects in joint tissue. Used in musculoskeletal aging and recovery protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['GHK-Cu', 'BPC-157', 'TB-500'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  testagen: {
+    name: 'Testagen',
+    common: 'Lys-Glu-Asp-Gly / Testes Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide targeting testicular tissue and Leydig cell function. Research demonstrates improvement of spermatogenesis, testosterone biosynthesis gene expression, and testicular function in aging and subfertile models. Used alongside androgen optimization protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Kisspeptin-10', 'CJC-1295 No DAC', 'Epitalon'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  prostamax: {
+    name: 'Prostamax',
+    common: 'Ala-Glu-Asp-Ala / Prostate Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide bioregulator derived from prostate tissue that normalizes prostate cell differentiation and proliferation gene expression. Research supports use in BPH prevention and age-related prostate decline. Used in men\'s longevity protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Testagen', 'Epitalon', 'Thymalin'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  crystagen: {
+    name: 'Crystagen',
+    common: 'Lys-Glu-Asp-Ala / Bronchial Bioregulator',
+    category: 'Organ Bioregulators',
+    catClass: 'organ',
+    desc: 'A Khavinson tetrapeptide bioregulator targeting bronchial and lung tissue, with immunomodulatory and cytoprotective effects. Research shows stimulation of bronchial epithelial cell differentiation and protection against age-related respiratory decline. Used alongside Bronchogen in lung protocols.',
+    startDose: '1 MG',
+    frequency: 'ONCE DAILY (COURSE)',
+    route: 'ORAL (SUBLINGUAL)',
+    synergy: ['Bronchogen', 'TA1', 'LL-37'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+
+  // METABOLIC / GLP-1
+  semaglutide: {
+    name: 'Semaglutide',
+    common: 'Ozempic / Wegovy',
+    category: 'Metabolic / GLP-1',
+    catClass: 'metabolic',
+    desc: 'A long-acting GLP-1 receptor agonist approved for type 2 diabetes and obesity. Reduces appetite via hypothalamic signaling, slows gastric emptying, and improves glycemic control. Clinical trials show 15–20% body weight reduction at max dose. Cardioprotective and neuroprotective effects also being investigated.',
+    startDose: '0.25 MG',
+    frequency: 'ONCE WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Tirzepatide', 'Cagrilintide', 'L-Carnitine', 'AOD-9604'],
+    doses: [{label:'0.25 mg', val:0.25, unit:'mg'},{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'1.7 mg', val:1.7, unit:'mg'},{label:'2.4 mg', val:2.4, unit:'mg'}],
+    isMcg: false
+  },
+  tirzepatide: {
+    name: 'Tirzepatide',
+    common: 'Mounjaro / Zepbound',
+    category: 'Metabolic / GLP-1',
+    catClass: 'metabolic',
+    desc: 'A dual GLP-1/GIP receptor agonist with superior efficacy to GLP-1 monotherapy. Clinical trials show up to 22% body weight reduction — the greatest seen in any anti-obesity pharmacotherapy. Also demonstrates meaningful improvements in insulin sensitivity and lipid profiles.',
+    startDose: '2.5 MG',
+    frequency: 'ONCE WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Cagrilintide', 'Semaglutide', 'AOD-9604'],
+    doses: [{label:'2.5 mg', val:2.5, unit:'mg'},{label:'5 mg', val:5, unit:'mg'},{label:'7.5 mg', val:7.5, unit:'mg'},{label:'10 mg', val:10, unit:'mg'},{label:'12.5 mg', val:12.5, unit:'mg'},{label:'15 mg', val:15, unit:'mg'}],
+    isMcg: false
+  },
+  retatrutide: {
+    name: 'Retatrutide',
+    common: 'LY3437943 / GLP-1/GIP/GCGR Triple Agonist',
+    category: 'Metabolic / GLP-1',
+    catClass: 'metabolic',
+    desc: 'A triple agonist targeting GLP-1, GIP, and glucagon receptors simultaneously — the first of its class in development. Phase 2 trials showed up to 24% body weight reduction over 48 weeks, surpassing all prior agents. The glucagon component adds thermogenic activity, enhancing metabolic rate beyond appetite suppression alone.',
+    startDose: '0.5 MG',
+    frequency: 'ONCE WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Cagrilintide', 'Tirzepatide', 'MOTS-C', 'L-Carnitine'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'2 mg', val:2, unit:'mg'},{label:'4 mg', val:4, unit:'mg'},{label:'8 mg', val:8, unit:'mg'},{label:'12 mg', val:12, unit:'mg'}],
+    isMcg: false
+  },
+  liraglutide: {
+    name: 'Liraglutide',
+    common: 'Victoza / Saxenda',
+    category: 'Metabolic / GLP-1',
+    catClass: 'metabolic',
+    desc: 'A once-daily GLP-1 receptor agonist with FDA approval for diabetes (Victoza) and obesity (Saxenda 3mg). Structurally similar to native GLP-1 with a fatty acid chain for albumin binding. Also used investigationally for NASH, neuroprotection, and polycystic ovary syndrome.',
+    startDose: '0.6 MG',
+    frequency: 'ONCE DAILY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Semaglutide', 'Cagrilintide', 'AOD-9604'],
+    doses: [{label:'0.6 mg', val:0.6, unit:'mg'},{label:'1.2 mg', val:1.2, unit:'mg'},{label:'1.8 mg', val:1.8, unit:'mg'},{label:'2.4 mg', val:2.4, unit:'mg'},{label:'3 mg', val:3, unit:'mg'}],
+    isMcg: false
+  },
+  cagrilintide: {
+    name: 'Cagrilintide',
+    common: 'Amylin Analogue / Satiety Peptide',
+    category: 'Metabolic / GLP-1',
+    catClass: 'metabolic',
+    desc: 'A long-acting amylin analogue targeting area postrema receptors to reduce food intake via complementary pathways to GLP-1. In the CagriSema combination trial, average weight loss exceeded 25%, suggesting synergistic satiety signaling. Represents a new class of metabolic peptides with distinct mechanistic action.',
+    startDose: '0.16 MG',
+    frequency: 'ONCE WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Semaglutide', 'Tirzepatide', 'Retatrutide'],
+    doses: [{label:'0.16 mg', val:0.16, unit:'mg'},{label:'0.3 mg', val:0.3, unit:'mg'},{label:'0.6 mg', val:0.6, unit:'mg'},{label:'1.2 mg', val:1.2, unit:'mg'},{label:'2.4 mg', val:2.4, unit:'mg'}],
+    isMcg: false
+  },
+
+  // SEXUAL HEALTH
+  pt141: {
+    name: 'PT-141',
+    common: 'Bremelanotide',
+    category: 'Sexual Health',
+    catClass: 'sexual',
+    desc: 'FDA-approved melanocortin receptor agonist for hypoactive sexual desire disorder (HSDD) in women. Acts centrally via MC3R/MC4R receptors in the hypothalamus to increase sexual desire independent of vascular mechanisms. Used off-label in men for erectile dysfunction and libido enhancement.',
+    startDose: '1 MG',
+    frequency: '45 MIN BEFORE ACTIVITY (MAX 1X/72H)',
+    route: 'SUBCUTANEOUS / INTRANASAL',
+    synergy: ['Kisspeptin-10', 'Oxytocin', 'Melanotan II'],
+    doses: [{label:'0.5 mg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'},{label:'1.75 mg', val:1.75, unit:'mg'},{label:'2 mg', val:2, unit:'mg'}],
+    isMcg: false
+  },
+  kisspeptin10: {
+    name: 'Kisspeptin-10',
+    common: 'KP-10 / GnRH Pulse Inducer',
+    category: 'Sexual Health',
+    catClass: 'sexual',
+    desc: 'A 10-amino acid neuropeptide that potently stimulates GnRH pulsatility, triggering downstream LH and testosterone secretion. Research shows acute increases in LH, FSH, and testosterone in men. Used for HPG axis restoration and libido enhancement without suppressive feedback.',
+    startDose: '100 MCG',
+    frequency: '3-5X WEEKLY',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Testagen', 'PT-141', 'CJC-1295 No DAC'],
+    doses: [{label:'50 mcg', val:0.05, unit:'mg'},{label:'100 mcg', val:0.1, unit:'mg'},{label:'200 mcg', val:0.2, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'}],
+    isMcg: true
+  },
+  oxytocin: {
+    name: 'Oxytocin',
+    common: 'OXT / Bonding Hormone',
+    category: 'Sexual Health',
+    catClass: 'sexual',
+    desc: 'Endogenous neuropeptide released during social bonding, intimacy, and childbirth. Exogenous use enhances social trust, empathy, sexual satisfaction, and reduces social anxiety. Intranasal delivery crosses the blood-brain barrier effectively. Used in relationship enhancement, autism research, and PTSD protocols.',
+    startDose: '20 IU',
+    frequency: 'AS NEEDED (INTRANASAL)',
+    route: 'INTRANASAL / SUBCUTANEOUS',
+    synergy: ['PT-141', 'Selank', 'Semax'],
+    doses: [{label:'10 IU', val:0.01, unit:'mg'},{label:'20 IU', val:0.02, unit:'mg'},{label:'40 IU', val:0.04, unit:'mg'}],
+    isMcg: true
+  },
+
+  // TANNING / PIGMENTATION
+  melanotanI: {
+    name: 'Melanotan I',
+    common: 'Afamelanotide / Scenesse',
+    category: 'Tanning / Pigmentation',
+    catClass: 'tanning',
+    desc: 'FDA-approved alpha-MSH analogue (Scenesse) for erythropoietic protoporphyria. Activates MC1R receptors on melanocytes to increase eumelanin production, providing photoprotection and pigmentation with minimal MC4R activity (no libido effects). The cleaner tanning peptide between the two melanotans.',
+    startDose: '500 MCG',
+    frequency: 'EVERY OTHER DAY (LOADING)',
+    route: 'SUBCUTANEOUS',
+    synergy: ['Melanotan II', 'BPC-157', 'GHK-Cu'],
+    doses: [{label:'250 mcg', val:0.25, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'},{label:'1 mg', val:1, unit:'mg'}],
+    isMcg: true
+  },
+  melanotanII: {
+    name: 'Melanotan II',
+    common: 'MT-II / Non-Selective MSH Analogue',
+    category: 'Tanning / Pigmentation',
+    catClass: 'tanning',
+    desc: 'A non-selective alpha-MSH analogue with potent MC1R, MC3R, and MC4R activity, producing pigmentation, libido enhancement, and appetite suppression simultaneously. Strong tanning effect from minimal UV exposure. MC4R activation causes spontaneous erections and nausea at higher doses.',
+    startDose: '250 MCG',
+    frequency: 'ONCE DAILY (LOADING)',
+    route: 'SUBCUTANEOUS / INTRANASAL',
+    synergy: ['PT-141', 'Melanotan I', 'BPC-157'],
+    doses: [{label:'100 mcg', val:0.1, unit:'mg'},{label:'250 mcg', val:0.25, unit:'mg'},{label:'500 mcg', val:0.5, unit:'mg'},{label:'750 mcg', val:0.75, unit:'mg'}],
+    isMcg: true
+  },
+};
+
+/* BAC water volumes per vial size */
+const BAC_WATER = {
+  2: 1,
+  5: 2,
+  10: 2,
+  12: 2.4,
+  15: 3,
+  20: 4,
+  30: 3,
+  40: 4,
+  50: 5,
+};
+
+/* Syringe units per ml */
+const SYRINGE_UNITS_PER_ML = {
+  u100: 100,
+  u40: 40,
+  half: 100, // 0.5ml syringe typically U-100 scale
+};
+
+const SYRINGE_LABELS = {
+  u100: 'U-100 INSULIN (1ML)',
+  u40: 'U-40 INSULIN (1ML)',
+  half: '0.5ML SYRINGE',
+};
+
+/* ─────────────────────────────────────── */
+
+const peptideSelect = document.getElementById('peptideSelect');
+const vialSize = document.getElementById('vialSize');
+const desiredDose = document.getElementById('desiredDose');
+const bacWater = document.getElementById('bacWater');
+const syringeType = document.getElementById('syringeType');
+const infoPanel = document.getElementById('infoPanel');
+const calcPanel = document.getElementById('calcPanel');
+const outputPanel = document.getElementById('outputPanel');
+const resetBtn = document.getElementById('resetBtn');
+
+function showPanel(el) {
+  el.style.display = 'block';
+  requestAnimationFrame(() => {
+    el.classList.add('visible');
+  });
+}
+
+function hidePanel(el) {
+  el.classList.remove('visible');
+  setTimeout(() => { el.style.display = 'none'; }, 350);
+}
+
+function populateDoseDropdown(peptideKey) {
+  desiredDose.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '— SELECT DOSE —';
+  desiredDose.appendChild(placeholder);
+
+  if (!peptideKey || !PEPTIDES[peptideKey]) return;
+
+  const p = PEPTIDES[peptideKey];
+  p.doses.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.val;
+    opt.textContent = d.label.toUpperCase();
+    desiredDose.appendChild(opt);
+  });
+}
+
+function renderInfo(key) {
+  if (!key || !PEPTIDES[key]) {
+    hidePanel(infoPanel);
+    return;
+  }
+  const p = PEPTIDES[key];
+
+  document.getElementById('infoBadge').innerHTML =
+    `<span class="cat-badge ${p.catClass}" style="margin-bottom:12px;display:inline-block">${p.category.toUpperCase()}</span>`;
+  document.getElementById('infoName').textContent = p.name.toUpperCase();
+  document.getElementById('infoCommon').textContent = p.common.toUpperCase();
+  document.getElementById('infoDesc').textContent = p.desc;
+
+  document.getElementById('infoGrid').innerHTML = `
+    <div class="info-chip">
+      <div class="info-chip-label">Starting Dose</div>
+      <div class="info-chip-value">${p.startDose}</div>
+    </div>
+    <div class="info-chip">
+      <div class="info-chip-label">Frequency</div>
+      <div class="info-chip-value">${p.frequency}</div>
+    </div>
+    <div class="info-chip">
+      <div class="info-chip-label">Route</div>
+      <div class="info-chip-value">${p.route}</div>
+    </div>
+  `;
+
+  document.getElementById('synergyList').innerHTML =
+    p.synergy.map(s => `<span class="synergy-tag">${s.toUpperCase()}</span>`).join('');
+
+  showPanel(infoPanel);
+}
+
+/* ─── TYPING ANIMATION ─── */
+let typingTimers = [];
+function clearTyping() {
+  typingTimers.forEach(t => clearTimeout(t));
+  typingTimers = [];
+}
+
+function typeText(el, text, speed, cb) {
+  el.textContent = '';
+  const blinker = document.createElement('span');
+  blinker.className = 'blinker';
+  el.appendChild(blinker);
+
+  let i = 0;
+  function tick() {
+    if (i < text.length) {
+      el.insertBefore(document.createTextNode(text[i]), blinker);
+      i++;
+      const t = setTimeout(tick, speed);
+      typingTimers.push(t);
+    } else {
+      blinker.remove();
+      if (cb) cb();
+    }
+  }
+  tick();
+}
+
+function calculateAndDisplay() {
+  const pKey = peptideSelect.value;
+  const vial = parseFloat(vialSize.value);
+  const bacVol = parseFloat(bacWater.value);
+  const dose = parseFloat(desiredDose.value);
+  const syringe = syringeType.value;
+
+  if (!pKey || !vial || !bacVol || !dose || !syringe) {
+    hidePanel(outputPanel);
+    return;
+  }
+
+  const p = PEPTIDES[pKey];
+  const vialMg = vial;            // mg in vial
+  const concMgPerMl = vialMg / bacVol; // mg/ml
+  const concMcgPerMl = concMgPerMl * 1000; // mcg/ml
+
+  // dose is always stored in mg
+  const drawMl = dose / concMgPerMl;
+  const unitsPerMl = SYRINGE_UNITS_PER_ML[syringe];
+  const drawUnits = drawMl * unitsPerMl;
+  const dosesPerVial = vialMg / dose;
+
+  // Format concentration display
+  let concDisplay;
+  if (p.isMcg) {
+    concDisplay = `${Math.round(concMcgPerMl)} MCG/ML`;
+  } else {
+    concDisplay = concMgPerMl >= 1
+      ? `${parseFloat(concMgPerMl.toFixed(2))} MG/ML`
+      : `${Math.round(concMcgPerMl)} MCG/ML`;
+  }
+
+  // Format dose display
+  const doseDisplay = p.isMcg
+    ? `${Math.round(dose * 1000)} MCG`
+    : (dose >= 1 ? `${parseFloat(dose.toFixed(3))} MG` : `${Math.round(dose * 1000)} MCG`);
+
+  const drawMlDisplay = parseFloat(drawMl.toFixed(3));
+  const drawUnitsDisplay = parseFloat(drawUnits.toFixed(1));
+  const dosesDisplay = parseFloat(dosesPerVial.toFixed(1));
+
+  const lines = [
+    { label: '01 — RECONSTITUTION', value: `ADD ${bacVol}ML BAC WATER TO ${vialMg}MG VIAL`, cls: 'primary' },
+    { label: '02 — CONCENTRATION', value: concDisplay, cls: 'secondary' },
+    { label: '03 — DRAW VOLUME', value: `FOR ${doseDisplay} — DRAW ${drawMlDisplay}ML FROM VIAL`, cls: 'tertiary' },
+    { label: '04 — SYRINGE UNITS', value: `${drawUnitsDisplay} UNITS ON ${SYRINGE_LABELS[syringe]}`, cls: 'white' },
+    { label: '05 — VIAL YIELD', value: `ESTIMATED ${dosesDisplay} DOSES PER VIAL`, cls: 'secondary' },
+  ];
+
+  const outputLines = document.getElementById('outputLines');
+  outputLines.innerHTML = '';
+
+  lines.forEach((line, i) => {
+    if (i > 0) {
+      const div = document.createElement('div');
+      div.className = 'output-divider';
+      outputLines.appendChild(div);
+    }
+    const wrapper = document.createElement('div');
+    wrapper.className = 'output-line animate-in';
+    wrapper.style.animationDelay = `${i * 0.04}s`;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'output-line-label';
+    lbl.textContent = line.label;
+
+    const val = document.createElement('div');
+    val.className = `output-line-value ${line.cls}`;
+
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(val);
+    outputLines.appendChild(wrapper);
+
+    // Type animation staggered
+    const delay = i * 120;
+    const t = setTimeout(() => {
+      typeText(val, line.value, 18);
+    }, delay);
+    typingTimers.push(t);
+  });
+
+  showPanel(outputPanel);
+}
+
+/* ─── EVENT LISTENERS ─── */
+peptideSelect.addEventListener('change', () => {
+  const key = peptideSelect.value;
+  clearTyping();
+  renderInfo(key);
+  populateDoseDropdown(key);
+  desiredDose.value = '';
+
+  if (key) {
+    showPanel(calcPanel);
+  } else {
+    hidePanel(calcPanel);
+    hidePanel(outputPanel);
+  }
+  hidePanel(outputPanel);
+});
+
+[vialSize, bacWater, desiredDose, syringeType].forEach(el => {
+  el.addEventListener('change', () => {
+    clearTyping();
+    calculateAndDisplay();
+  });
+});
+
+resetBtn.addEventListener('click', () => {
+  peptideSelect.value = '';
+  vialSize.value = '';
+  bacWater.value = '';
+  syringeType.value = '';
+  desiredDose.innerHTML = '<option value="">— SELECT PEPTIDE FIRST —</option>';
+  clearTyping();
+  hidePanel(infoPanel);
+  hidePanel(calcPanel);
+  hidePanel(outputPanel);
+});
+</script>
+</body>
+</html>
